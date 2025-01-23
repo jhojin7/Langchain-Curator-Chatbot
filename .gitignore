@@ -1,0 +1,5 @@
+notion_content/
+.streamlit/
+.DS_Store
+__pycache__
+venv/
