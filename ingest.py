@@ -7,6 +7,8 @@ from langchain.vectorstores import FAISS
 
 # Load OpenAI API key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+DOCUMENTS_DIR = st.secrets["DOCUMENTS_DIR"]
+
 
 # # Load the notion content located in the notion_content folder
 # loader = NotionDirectoryLoader("notion_content")
@@ -14,26 +16,28 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_core.documents import Document
 
-
-loader = UnstructuredMarkdownLoader(
-    "/Users/hojinjang/Downloads/CUBO_DB/맛집 정보 분석 - 쌤쌤쌤.md",
-    mode="elements",
-)
-documents = loader.load()
-print(len(documents), documents[0])
-
-# Split Notion content into smaller chunks
-markdown_splitter = RecursiveCharacterTextSplitter(
-    separators=["#", "##", "###", "\n\n", "\n", "."], chunk_size=1500, chunk_overlap=100
-)
-docs = markdown_splitter.split_documents(documents)
+from pathlib import Path
 
 # Initialize OpenAI embedding model
 embeddings = OpenAIEmbeddings()
 
-# Convert all chunks into vectors embeddings using OpenAI embedding model
-# Store all vectors in FAISS index and save locally to 'faiss_index'
+documents_dir = Path(DOCUMENTS_DIR)
+docs = []
+for doc_path in documents_dir.glob("*.md"):
+    print(doc_path)
+    loader = UnstructuredMarkdownLoader(str(doc_path), mode="elements")
+    documents = loader.load()
+    print(len(documents), documents[0])
+
+    # Split Notion content into smaller chunks
+    markdown_splitter = RecursiveCharacterTextSplitter(
+        separators=["#", "##", "###", "\n\n", "\n", "."],
+        chunk_size=1500,
+        chunk_overlap=100,
+    )
+    docs.extend(markdown_splitter.split_documents(documents))
+    # Convert all chunks into vectors embeddings using OpenAI embedding model
+    # Store all vectors in FAISS index and save locally to 'faiss_index'
 db = FAISS.from_documents(docs, embeddings)
 db.save_local("faiss_index")
-
 print("Local FAISS index has been successfully saved.")
