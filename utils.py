@@ -12,6 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+FAISS_PATH = "faiss_index_nosplit"
 
 SYSTEM_TEMPLATE = """ 당신은 최고의 맛집 큐레이터로서 사용자가 묻는 내용을 검토하여, 자체 데이터베이스에서 검색된 연관 내용을 함께 검토하여 최고의 맛집을 추천해주는 역할을 합니다.
 모르는 경우 답변할 수 없다고 말해주세요.
@@ -21,7 +22,8 @@ SYSTEM_TEMPLATE = """ 당신은 최고의 맛집 큐레이터로서 사용자가
 문서의 메타데이터는 `<metadata>, </metadata>` 태그로 감싸져 있습니다.
 답변은 마크다운 형식으로 작성해주세요. 추천하는 맛집들에 대해서 각 맛집마다 별도의 리스트 아이템으로 작성해주세요.
 각 맛집은 이름, 주소를 포함하고, 그 아래 불릿 포인트 리스트로 왜 추천했는지 간단하게 3-4 문장으로 설명해주세요.
-문서에 없는 내용을 답변하거나, 문서에 없는 맛집을 절대 추천해선 안됩니다. 사용자에게 "죄송하지만 질문하신 내용에 대한 맛집을 찾을 수 없었어요." 라는 답변을 해주세요. 
+문서에 없는 내용을 답변하거나, 문서에 없는 맛집을 절대 추천해선 안됩니다. 
+문서 중에서 사용자가 찾고자 하는 내용이 하나도 없다면, "죄송하지만 질문하신 내용에 대한 맛집을 찾을 수 없었어요." 라는 답변을 해주세요. 
 
 <question>{question}</question>
 <docs>{context}</docs>
@@ -41,7 +43,7 @@ def format_docs(docs: list[Document]):
 def load_qa_chain():
     embeddings = OpenAIEmbeddings()
     vector_store = FAISS.load_local(
-        "faiss_index", embeddings, allow_dangerous_deserialization=True
+        FAISS_PATH, embeddings, allow_dangerous_deserialization=True
     )
     prompt = PromptTemplate(
         input_variables=["question", "context"], template=SYSTEM_TEMPLATE
