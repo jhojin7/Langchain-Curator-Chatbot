@@ -1,13 +1,13 @@
 import time
 import streamlit as st
-from utils import load_chain
+from utils import load_chain, load_qa_chain
 
 # Configure streamlit page
 st.set_page_config(page_title="맛집 큐레이션 챗봇 데모")
 
 # Initialize LLM chain in session_state
 if "chain" not in st.session_state:
-    st.session_state["chain"] = load_chain()
+    st.session_state["chain"] = load_qa_chain()
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -30,7 +30,7 @@ for message in st.session_state.messages:
             st.markdown(message["content"])
 
 # Chat logic
-if query := st.chat_input("Ask me anything"):
+if query := st.chat_input("떡볶이 맛집 추천해줘."):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": query})
     # Display user message in chat message container
@@ -39,18 +39,10 @@ if query := st.chat_input("Ask me anything"):
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        # Send user's question to our chain
-        result = st.session_state["chain"]({"question": query})
-        response = result["answer"]
-        full_response = ""
-
-        # Simulate stream of response with milliseconds delay
-        for chunk in response.split():
-            full_response += chunk + " "
-            time.sleep(0.05)
-            # Add a blinking cursor to simulate typing
-            message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
+        response = st.session_state["chain"].invoke(query)
+        print(response)
+        print(st.session_state.messages)
+        message_placeholder.markdown(response)
 
     # Add assistant message to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
