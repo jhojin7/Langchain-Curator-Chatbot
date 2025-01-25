@@ -8,22 +8,23 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-
-# 1. Load CSV
-file_path = "/Users/hojinjang/coding/notion-chatbot-public/data/네이버맛집리스트_20250124.0150.csv"
-loader = CSVLoader(file_path=file_path)
-documents = loader.load()
-
-# 2. Create a retriever (using similarity search)
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
-embeddings = OpenAIEmbeddings()
 try:
+    # 1. Load CSV
+    file_path = "./data/네이버맛집리스트_20250124.0150.csv"
+    loader = CSVLoader(file_path=file_path)
+    documents = loader.load()
+
+    # 2. Create a retriever (using similarity search)
+    embeddings = OpenAIEmbeddings()
+
     vectorstore = FAISS.from_documents(documents, embeddings)
     vectorstore.save_local("faiss_csv")
 except Exception as e:
     print(e)
+    embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.load_local(
         "faiss_csv", embeddings, allow_dangerous_deserialization=True
     )
