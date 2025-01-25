@@ -1,13 +1,14 @@
 import time
 import streamlit as st
 from utils import load_chain, load_qa_chain
+from csv_retrieve import rag_from_csv
 
 # Configure streamlit page
 st.set_page_config(page_title="맛집 큐레이션 챗봇 데모")
 
 # Initialize LLM chain in session_state
 if "chain" not in st.session_state:
-    st.session_state["chain"] = load_qa_chain()
+    st.session_state["chain"] = rag_from_csv()
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -15,7 +16,7 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = [
         {
             "role": "assistant",
-            "content": "안녕하세요! 맛집 큐레이션 챗봇입니다. 무엇을 도와드릴까요?",
+            "content": "안녕하세요! 맛집 큐레이션 챗봇입니다. 어떤 맛집을 추천드릴까요?",
         }
     ]
 
