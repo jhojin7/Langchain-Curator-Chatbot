@@ -25,7 +25,7 @@ def write_file(st_uploaded_file: UploadedFile) -> Path:
 def st_sidbar_ui() -> bool:
     st.sidebar.header("Configuration")
     csv_file = st.sidebar.file_uploader(
-        "Upload CSV File",
+        "CSV 파일 업로드",
         type=["csv"],
         # accept_multiple_files=True
     )
@@ -34,7 +34,7 @@ def st_sidbar_ui() -> bool:
     print(uploaded_csv_path)
 
     system_prompt = st.sidebar.text_area(
-        "System Prompt", sample_system_prompt, height=200
+        "시스템 프롬프트", sample_system_prompt, height=200
     )
 
     temperature = st.sidebar.number_input(
@@ -50,7 +50,7 @@ def st_sidbar_ui() -> bool:
         "OpenAI 모델 이름", ["gpt-3.5-turbo", "gpt-4o-mini", "o3-mini"]
     )
 
-    if st.sidebar.button("Initialize Chat Session"):
+    if st.sidebar.button("채팅 시작"):
         try:
             _retriever = create_retriever(csv_path=uploaded_csv_path)
         except Exception as e:
@@ -80,10 +80,6 @@ def st_sidbar_ui() -> bool:
                 api_key=openai_api_key,
             )
             print(st.session_state)
-
-        # # Initialize LLM chain in session_state
-        # if "chain" not in st.session_state:
-        #     st.session_state["chain"] = rag_from_csv()
 
         if "messages" not in st.session_state:
             st.session_state["messages"] = [
