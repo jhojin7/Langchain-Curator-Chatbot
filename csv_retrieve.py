@@ -58,7 +58,8 @@ def rag_from_csv(
     retriever,
     chat_prompt_template=CHAT_PROMPT_TEMPLATE,
     model_name="gpt-3.5-turbo",
-    temp=0.2,
+    system_prompt="",
+    temp=None,
     api_key=None,
 ):
     # Prompt template

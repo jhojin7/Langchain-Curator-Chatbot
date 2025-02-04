@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from csv_retrieve import rag_from_csv, create_retriever
 from pathlib import Path
+from graph import create_graph
 
 sample_system_prompt = """You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question.
@@ -70,12 +71,23 @@ def st_sidbar_ui() -> bool:
             st.session_state["data"] = data
 
             st.session_state["retriever"] = _retriever
-            st.session_state["chain"] = rag_from_csv(
+            # st.session_state["chain"] = rag_from_csv(
+            #     retriever=_retriever,
+            #     model_name=openai_model_name,
+            #     system_prompt=system_prompt,
+            #     temp=temperature,
+            #     api_key=openai_api_key,
+            # )
+
+            graph, config = create_graph(
                 retriever=_retriever,
                 model_name=openai_model_name,
+                system_prompt=system_prompt,
                 temp=temperature,
                 api_key=openai_api_key,
             )
+            st.session_state["chain"] = graph
+            st.session_state["chainConfig"] = config
             print(st.session_state)
 
         if "messages" not in st.session_state:

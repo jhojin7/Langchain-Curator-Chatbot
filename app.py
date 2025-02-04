@@ -26,14 +26,22 @@ else:
 
     if query:
         # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": query})
+        msg = {"role": "user", "content": query}
+        st.session_state.messages.append(msg)
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(query)
 
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            response = st.session_state["chain"].invoke(query)
+            response = (
+                st.session_state["chain"]
+                .invoke(
+                    {"messages": st.session_state.messages},
+                    config=st.session_state["chainConfig"],
+                )["messages"][-1]
+                .content
+            )
             print(response)
             print(st.session_state.messages)
             message_placeholder.markdown(response)
