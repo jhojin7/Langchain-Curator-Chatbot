@@ -40,17 +40,14 @@ def st_sidbar_ui() -> bool:
     temperature = st.sidebar.number_input(
         "LLM Temperature", value=0.1, step=0.05, min_value=0.0, max_value=1.0
     )
-    openai_api_key_default = (
-        st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else ""
-    )
-    openai_api_key = st.sidebar.text_input(
-        "OpenAI API Key", type="password", value=openai_api_key_default
-    )
+    openai_api_key = st.sidebar.text_input("OpenAI API Key (선택)", type="password")
     openai_model_name = st.sidebar.selectbox(
         "OpenAI 모델 이름", ["gpt-3.5-turbo", "gpt-4o-mini", "o1-mini"]
     )
 
     if st.sidebar.button("채팅 시작"):
+        if not openai_api_key:
+            openai_api_key = st.secrets["OPENAI_API_KEY"]
         try:
             _retriever = create_retriever(csv_path=uploaded_csv_path)
         except Exception as e:
