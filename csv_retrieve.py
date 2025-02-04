@@ -67,10 +67,9 @@ def create_retriever(
     return retriever
 
 
-CHAT_PROMPT_TEMPLATE = """
-Context: {context}
-
+CHAT_PROMPT_TEMPLATE = """Context: {context}
 Question: {question}
+Answer:
 """
 
 
@@ -79,9 +78,16 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-def rag_from_csv(retriever, chat_prompt_template=CHAT_PROMPT_TEMPLATE):
+def rag_from_csv(
+    retriever,
+    chat_prompt_template=CHAT_PROMPT_TEMPLATE,
+    model_name="gpt-3.5-turbo",
+    temp=0.2,
+    api_key=None,
+):
     # Prompt template
     prompt = ChatPromptTemplate.from_template(chat_prompt_template)
+    llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
     # Create the RAG chain
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
