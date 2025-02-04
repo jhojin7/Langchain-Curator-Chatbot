@@ -47,7 +47,7 @@ def st_sidbar_ui() -> bool:
         "OpenAI API Key", type="password", value=openai_api_key_default
     )
     openai_model_name = st.sidebar.selectbox(
-        "OpenAI 모델 이름", ["gpt-3.5-turbo", "gpt-4o-mini", "o3-mini"]
+        "OpenAI 모델 이름", ["gpt-3.5-turbo", "gpt-4o-mini", "o1-mini"]
     )
 
     if st.sidebar.button("채팅 시작"):
