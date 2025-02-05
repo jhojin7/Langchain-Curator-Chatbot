@@ -10,7 +10,10 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import KonlpyTextSplitter
 from pathlib import Path
+
+TEXT_SPLITTER = KonlpyTextSplitter
 
 
 def create_retriever(
@@ -32,12 +35,21 @@ def create_retriever(
         )
     except Exception as e:
         print(e)
-        loader = CSVLoader(csv_path)
-        documents = loader.load()
-        print("Loaded documents from CSV file.")
-        vectorstore = FAISS.from_documents(documents, embeddings)
-        print("Created FAISS vectorstore.")
-        vectorstore.save_local(save_path)
+
+        with st.spinner("Loading documents from CSV file..."):
+            loader = CSVLoader(csv_path, encoding="utf-8-sig")
+            # documents = loader.load()
+            documents = loader.load_and_split(
+                text_splitter=TEXT_SPLITTER(
+                    # chunk_size=500,
+                    # chunk_overlap=100,
+                )
+            )
+            print("Loaded documents from CSV file.")
+        with st.spinner("Creating FAISS vectorstore..."):
+            vectorstore = FAISS.from_documents(documents, embeddings)
+            vectorstore.save_local(save_path)
+            print("Created FAISS vectorstore.")
     print("Loaded FAISS vectorstore.")
     retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
     return retriever
