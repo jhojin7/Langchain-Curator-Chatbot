@@ -2,6 +2,9 @@ import time
 import streamlit as st
 from csv_retrieve import rag_from_csv
 
+import os
+os.environ["JAVA_HOME"] ="/usr/lib/jvm"
+
 # Configure streamlit page
 st.set_page_config(page_title="맛집 큐레이션 챗봇 데모")
 from st_sidebar_ui import st_sidbar_ui
