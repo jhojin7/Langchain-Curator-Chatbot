@@ -45,6 +45,7 @@ def create_graph(
         return {"messages": response}
 
     llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
+    print(llm)
     graph_builder = StateGraph(state_schema=MessagesState)
     graph_builder.add_node("retrieve", retrieve)
     graph_builder.add_node("generate", generate)

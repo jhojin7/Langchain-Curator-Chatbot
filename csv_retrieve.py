@@ -11,9 +11,10 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import KonlpyTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
 
-TEXT_SPLITTER = KonlpyTextSplitter
+TEXT_SPLITTER = RecursiveCharacterTextSplitter
 
 
 def create_retriever(
@@ -39,12 +40,7 @@ def create_retriever(
         with st.spinner("Loading documents from CSV file..."):
             loader = CSVLoader(csv_path, encoding="utf-8-sig")
             # documents = loader.load()
-            documents = loader.load_and_split(
-                text_splitter=TEXT_SPLITTER(
-                    # chunk_size=500,
-                    # chunk_overlap=100,
-                )
-            )
+            documents = loader.load_and_split(text_splitter=TEXT_SPLITTER())
             print("Loaded documents from CSV file.")
         with st.spinner("Creating FAISS vectorstore..."):
             vectorstore = FAISS.from_documents(documents, embeddings)
@@ -77,6 +73,7 @@ def rag_from_csv(
     # Prompt template
     prompt = ChatPromptTemplate.from_template(chat_prompt_template)
     llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
+    print(llm)
     # Create the RAG chain
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -84,4 +81,5 @@ def rag_from_csv(
         | llm
         | StrOutputParser()
     )
+    print("RAG chain created.")
     return rag_chain
