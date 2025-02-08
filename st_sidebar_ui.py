@@ -43,7 +43,7 @@ def st_sidbar_ui() -> bool:
     )
     openai_api_key = st.sidebar.text_input("OpenAI API Key (선택)", type="password")
     openai_model_name = st.sidebar.selectbox(
-        "OpenAI 모델 이름", ["gpt-3.5-turbo", "gpt-4o-mini", "o1-mini"]
+        "OpenAI 모델 이름", ["gpt-4o-mini", "gpt-3.5-turbo", "o1-mini"]
     )
 
     if st.sidebar.button("채팅 시작"):
@@ -88,7 +88,6 @@ def st_sidbar_ui() -> bool:
             )
             st.session_state["chain"] = graph
             st.session_state["chainConfig"] = config
-            print(st.session_state)
 
         if "messages" not in st.session_state:
             st.session_state["messages"] = [
