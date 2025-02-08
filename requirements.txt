@@ -120,3 +120,4 @@ langchain-ollama
 unstructured
 chroma
 tiktoken
+rank_bm25

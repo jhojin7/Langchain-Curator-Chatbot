@@ -19,11 +19,13 @@ def create_graph(
 ):
     def retrieve(state: MessagesState):
         print("---RETRIEVE---")
-        # print(state)
         question = state["messages"][-1].content
-        documents = retriever.invoke(question, top_k=3)
-        # print("question:", question)
-        # print("documents:", documents)
+        documents = retriever.invoke(question)
+        print("> question:", question)
+        for doc in documents:
+            print("<<RETREIVE>>")
+            print(doc)
+            print("<</RETREIVE>>")
 
         response = [
             system_prompt,
