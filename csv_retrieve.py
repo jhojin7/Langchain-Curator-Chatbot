@@ -3,7 +3,13 @@ import streamlit as st
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
+from langchain_community.retrievers import BM25Retriever
+from langchain.retrievers import EnsembleRetriever
+from langchain.document_loaders import TextLoader
+from langchain.docstore.document import Document
 from langchain_community.document_loaders.csv_loader import CSVLoader
+from langchain_community.document_loaders import TextLoader
+from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
@@ -13,13 +19,15 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import KonlpyTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
+import pandas as pd
 
+LOADER = TextLoader
 TEXT_SPLITTER = RecursiveCharacterTextSplitter
 
 
 def create_retriever(
     csv_path,
-    top_k=5,
+    top_k=3,
     save_path: Path = None,
 ):
     embeddings = OpenAIEmbeddings()
@@ -34,21 +42,47 @@ def create_retriever(
             embeddings,
             allow_dangerous_deserialization=True,
         )
+        pass
     except Exception as e:
         print(e)
 
+        # documents = []
+        # summarize_llm = ChatOpenAI(model="gpt-3.5-turbo")
+        # df = pd.read_csv(csv_path)
+        # st_progress_bar = st.progress("Loading documents from CSV file...")
+        # for row_i, row in df.iterrows():
+        #     st_progress_bar.progress(row_i / len(df))
+        #     doc = Document(
+        #         # page_content=summary_response.content,
+        #         # metadata=row_to_dict,
+        #     )
+        #     documents.append(doc)
+
         with st.spinner("Loading documents from CSV file..."):
             loader = CSVLoader(csv_path, encoding="utf-8-sig")
-            # documents = loader.load()
             documents = loader.load_and_split(text_splitter=TEXT_SPLITTER())
-            print("Loaded documents from CSV file.")
+            print(f"Loaded {len(documents)} documents from CSV file.")
+
         with st.spinner("Creating FAISS vectorstore..."):
-            vectorstore = FAISS.from_documents(documents, embeddings)
-            vectorstore.save_local(save_path)
+            try:
+                faiss_vectorstore = FAISS.load_local(save_path, embeddings)
+            except Exception as e:
+                faiss_vectorstore = FAISS.from_documents(documents, embeddings)
+                faiss_vectorstore.save_local(save_path)
+            faiss_retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
             print("Created FAISS vectorstore.")
-    print("Loaded FAISS vectorstore.")
-    retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
-    return retriever
+
+        with st.spinner("Creating BM25Retriever vectorstore..."):
+            bm25_retriever = BM25Retriever.from_documents(documents)
+            bm25_retriever.k = 2
+
+        with st.spinner("Creating Ensamble Retriever..."):
+            ensemble_retriever = EnsembleRetriever(
+                retrievers=[faiss_retriever, bm25_retriever], weights=[0.5, 0.5]
+            )
+            print("Created Ensemble Retriever.")
+
+    return ensemble_retriever
 
 
 CHAT_PROMPT_TEMPLATE = """Context: {context}
