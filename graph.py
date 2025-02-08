@@ -8,6 +8,7 @@ from langgraph.graph import START, END, MessagesState, StateGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
+import streamlit as st
 
 
 def create_graph(
@@ -17,6 +18,8 @@ def create_graph(
     temp=None,
     api_key=None,
 ):
+    # Retrieved = st.expander("Retrieved Documents")
+
     def retrieve(state: MessagesState):
         print("---RETRIEVE---")
         question = state["messages"][-1].content
@@ -26,6 +29,7 @@ def create_graph(
             print("<<RETREIVE>>")
             print(doc)
             print("<</RETREIVE>>")
+            # Retrieved.container(height=200, border=True).write(doc.page_content)
 
         response = [
             system_prompt,
