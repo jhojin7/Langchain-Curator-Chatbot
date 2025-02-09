@@ -2,7 +2,7 @@ import uuid
 from typing import Dict, Tuple, Any
 import dotenv
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage, AnyMessage, ToolMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, END, MessagesState, StateGraph
 from langchain_openai import ChatOpenAI
@@ -17,41 +17,41 @@ def create_graph(
     system_prompt="",
     temp=None,
     api_key=None,
-):
+) -> Tuple[StateGraph, Dict[str, Any]]:
     # Retrieved = st.expander("Retrieved Documents")
+
+    llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
 
     def retrieve(state: MessagesState):
         print("---RETRIEVE---")
         question = state["messages"][-1].content
         documents = retriever.invoke(question)
-        print("> question:", question)
-        for doc in documents:
-            print("<<RETREIVE>>")
-            print(doc)
-            print("<</RETREIVE>>")
-            # Retrieved.container(height=200, border=True).write(doc.page_content)
 
-        response = [
+        return {
+            "messages": [ToolMessage(content=list(documents), tool_call_id="retriever")]
+        }
+
+    def generate(state: MessagesState):
+        print("---GENERATE111---")
+        print("---GENERATE222---")
+        question = state["messages"][-2].content
+        retrieved_docs = state["messages"][-1].content
+        context = "\n\n".join(retrieved_docs)
+        c = st.container(border=True)
+        for i, doc in enumerate(retrieved_docs, 1):
+            c.expander(label=f"문서{i}", expanded=False).text(doc)
+        to_combine = [
             system_prompt,
             "Context: ",
-            "\n\n".join(doc.page_content for doc in documents),
+            context,
             "Question: " + question,
             "Answer:",
         ]
-        response_str = "\n".join(response)
-
-        # print("RESPONSE:", response)
-        state["messages"] += [HumanMessage(content=response_str)]
-        return {"messages": state["messages"]}
-
-    def generate(state: MessagesState):
-        print("---GENERATE---")
-        # print(state)
-        response = llm.invoke(state["messages"])
+        combined_text = "\n".join(to_combine)
+        response = llm.invoke(combined_text)
+        print(">>> response:", response)
         return {"messages": response}
 
-    llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
-    print(llm)
     graph_builder = StateGraph(state_schema=MessagesState)
     graph_builder.add_node("retrieve", retrieve)
     graph_builder.add_node("generate", generate)
@@ -72,11 +72,11 @@ if __name__ == "__main__":
     graph, chatConfig = create_graph(retriever)
     print(graph)
     response = graph.invoke(
-        {"messages": [HumanMessage(content="떡볶이 맛집 추천해줘.")]}, config=chatConfig
+        {"messages": HumanMessage(content="떡볶이 맛집 추천해줘.")}, config=chatConfig
     )
-    print(response["messages"][-1].pretty_print())
     response = graph.invoke(
-        {"messages": [HumanMessage(content="다른 떡볶이 맛집 추천해줘.")]},
+        {"messages": HumanMessage(content="이 집 말고 다른 떡볶이 맛집 추천해줘.")},
         config=chatConfig,
     )
-    print(response["messages"][-1].pretty_print())
+    for message in response["messages"]:
+        print(message)

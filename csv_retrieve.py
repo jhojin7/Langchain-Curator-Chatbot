@@ -5,11 +5,8 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
-from langchain.document_loaders import TextLoader
-from langchain.docstore.document import Document
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders import TextLoader
-from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough

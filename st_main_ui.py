@@ -1,9 +1,13 @@
 import streamlit as st
 from langchain_core.runnables import RunnablePassthrough
+from langgraph.graph import MessagesState, StateGraph
+
+
+global CONTEXT_DOCS
 
 
 def st_main_ui():
-    CHAT_RUNNABLE: RunnablePassthrough = st.session_state["chain"]
+    CHAT_RUNNABLE: StateGraph = st.session_state["chain"]
 
     # Display chat messages from history on app rerun
     # Custom avatar for the assistant, default avatar for user
@@ -13,7 +17,8 @@ def st_main_ui():
                 st.markdown(message["content"])
         else:
             with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+                CONTEXT_DOCS = st.container(border=True)
+                CONTEXT_DOCS.markdown("Retrieved Documents")
 
     # Chat logic
     if query := st.chat_input(placeholder="떡볶이 맛집 추천해줘."):
