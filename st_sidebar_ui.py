@@ -30,10 +30,10 @@ def st_sidbar_ui() -> bool:
         type=["csv"],
         disabled=True,
     )
-    # uploaded_csv_path = write_file(csv_file)
 
     # set fixed csv path for development
     uploaded_csv_path = Path("./cache/네이버맛집리스트_20250201.0105.csv")
+    # uploaded_csv_path = write_file(csv_file)
     print(uploaded_csv_path)
 
     system_prompt = st.sidebar.text_area(
@@ -71,13 +71,6 @@ def st_sidbar_ui() -> bool:
             st.session_state["data"] = data
 
             st.session_state["retriever"] = _retriever
-            # st.session_state["chain"] = rag_from_csv(
-            #     retriever=_retriever,
-            #     model_name=openai_model_name,
-            #     system_prompt=system_prompt,
-            #     temp=temperature,
-            #     api_key=openai_api_key,
-            # )
 
             graph, config = create_graph(
                 retriever=_retriever,
