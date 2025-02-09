@@ -5,11 +5,8 @@ from st_main_ui import st_main_ui
 st.set_page_config(page_title="맛집 큐레이션 챗봇 데모")
 st.title("맛집 큐레이션 챗봇 데모")
 
-CHAT_INIT = st_sidbar_ui()
+st_sidbar_ui()
 if "messages" not in st.session_state.keys():
     st.info("챗봇 초기화에 실패했습니다. 사이드바에서 채팅을 초기화해주세요.")
 else:
     st_main_ui()
-
-
-RetrievedDocs = st.empty()

@@ -16,9 +16,7 @@ def st_main_ui():
                 st.markdown(message["content"])
 
     # Chat logic
-    query = st.chat_input("떡볶이 맛집 추천해줘.")
-
-    if query:
+    if query := st.chat_input(placeholder="떡볶이 맛집 추천해줘."):
         # Add user message to chat history
         msg = {"role": "user", "content": query}
         st.session_state.messages.append(msg)
@@ -34,6 +32,6 @@ def st_main_ui():
             )
             response_msg = response["messages"][-1].content
             message_placeholder.markdown(response_msg)
-
-        # Add assistant message to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            st.session_state.messages.append(
+                {"role": "assistant", "content": response_msg}
+            )
