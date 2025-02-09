@@ -1,7 +1,10 @@
 import streamlit as st
+from langchain_core.runnables import RunnablePassthrough
 
 
 def st_main_ui():
+    CHAT_RUNNABLE: RunnablePassthrough = st.session_state["chain"]
+
     # Display chat messages from history on app rerun
     # Custom avatar for the assistant, default avatar for user
     for message in st.session_state["messages"]:
@@ -25,17 +28,12 @@ def st_main_ui():
 
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            response = (
-                st.session_state["chain"]
-                .invoke(
-                    {"messages": st.session_state.messages},
-                    config=st.session_state["chainConfig"],
-                )["messages"][-1]
-                .content
+            response = CHAT_RUNNABLE.invoke(
+                {"messages": st.session_state.messages},
+                config=st.session_state["chainConfig"],
             )
-            print(response)
-            print(st.session_state.messages)
-            message_placeholder.markdown(response)
+            response_msg = response["messages"][-1].content
+            message_placeholder.markdown(response_msg)
 
         # Add assistant message to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})

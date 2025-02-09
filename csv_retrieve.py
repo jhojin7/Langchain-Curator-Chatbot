@@ -20,17 +20,20 @@ from langchain_text_splitters import KonlpyTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
 import time
+import pickle
 
 LOADER = TextLoader
 TEXT_SPLITTER = RecursiveCharacterTextSplitter
 
 
 def create_retriever(
-    csv_path,
+    csv_path=None,
     top_k=3,
     save_path: Path = None,
 ):
     embeddings = OpenAIEmbeddings()
+    bm25_pkl_path = Path("cache", "bm25_retriever.pkl")
+
     if not save_path:
         save_path = Path("faiss_cache_dir", csv_path.name)
     if not save_path.exists():
@@ -53,8 +56,14 @@ def create_retriever(
         print("Created FAISS vectorstore.")
 
     with st.spinner("Creating BM25Retriever vectorstore..."):
-        bm25_retriever = BM25Retriever.from_documents(documents)
-        bm25_retriever.k = 2
+        if bm25_pkl_path.exists():
+            bm25_retriever = pickle.load(open(bm25_pkl_path, "rb"))
+            print("Loaded BM25Retriever from cache.")
+        else:
+            bm25_retriever = BM25Retriever.from_documents(documents)
+            bm25_retriever.k = 2
+            pickle.dump(bm25_retriever, open(bm25_pkl_path, "wb"))
+            print("Created BM25Retriever.")
 
     with st.spinner("Creating Ensamble Retriever..."):
         ensemble_retriever = EnsembleRetriever(
