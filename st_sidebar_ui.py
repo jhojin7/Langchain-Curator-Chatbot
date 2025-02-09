@@ -28,10 +28,12 @@ def st_sidbar_ui() -> bool:
     csv_file = st.sidebar.file_uploader(
         "CSV 파일 업로드",
         type=["csv"],
-        # accept_multiple_files=True
+        disabled=True,
     )
-    uploaded_csv_path = write_file(csv_file)
-    print(csv_file)
+    # uploaded_csv_path = write_file(csv_file)
+
+    # set fixed csv path for development
+    uploaded_csv_path = Path("./cache/네이버맛집리스트_20250201.0105.csv")
     print(uploaded_csv_path)
 
     system_prompt = st.sidebar.text_area(
@@ -55,13 +57,11 @@ def st_sidbar_ui() -> bool:
             st.sidebar.error(f"파일 업로드에 실패했습니다: {e}")
             return False
 
-        if not csv_file:
+        if not uploaded_csv_path:
             st.sidebar.error("Please upload a CSV file.")
         elif not openai_api_key:
             st.sidebar.error("Please enter the OpenAI API Key.")
         else:
-            # Call the backend /initialize endpoint
-            files = {"csv_file": csv_file}
             # Note: Form fields are sent as strings.
             data = {
                 "system_prompt": system_prompt,
