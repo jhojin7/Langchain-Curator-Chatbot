@@ -1,10 +1,12 @@
 import openai
 import streamlit as st
-
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
+from pathlib import Path
+from langchain_community import retrievers
+from langchain_teddynote.retrievers import KiwiBM25Retriever
+from langchain_community.retrievers import TFIDFRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
+from langchain_core.document_loaders import BaseLoader
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders import TextLoader
 from langchain_openai import ChatOpenAI
@@ -19,8 +21,29 @@ from pathlib import Path
 import time
 import pickle
 
+
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 LOADER = TextLoader
 TEXT_SPLITTER = RecursiveCharacterTextSplitter
+
+
+metadata_colnames = "가게명,카테고리,주소,이미지URL1,이미지URL2,이미지URL3,별점,방문자리뷰수,블로그리뷰수,영업시간,전화번호,편의시설".split(
+    ","
+)
+colnames = "가게명,카테고리,주소,메뉴1,메뉴1_가격,메뉴2,메뉴2_가격,메뉴3,메뉴3_가격,메뉴4,메뉴4_가격,방문자리뷰1,방문자리뷰2,방문자리뷰3,블로그리뷰1,블로그리뷰2,블로그리뷰3".split(
+    ","
+)
+
+
+def build_retriever(documents: list[str], retriever, k=2):
+    built_retriever = retriever.from_documents(documents)
+    built_retriever.k = k
+    return built_retriever
+
+
+def build_documents(loader: BaseLoader, path: Path, text_splitter=None):
+    documents = loader.load_and_split(text_splitter=text_splitter)
+    return documents
 
 
 def create_retriever(
@@ -37,8 +60,17 @@ def create_retriever(
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
     with st.spinner("Loading documents from CSV file..."):
-        loader = CSVLoader(csv_path, encoding="utf-8-sig")
-        documents = loader.load_and_split(text_splitter=TEXT_SPLITTER())
+        loader = CSVLoader(
+            csv_path,
+            encoding="utf-8-sig",
+            content_columns=colnames,
+            # metadata_columns=metadata_colnames
+        )
+        documents = build_documents(
+            loader,
+            csv_path,
+            text_splitter=TEXT_SPLITTER(separators=["\n"], keep_separator=True),
+        )
         print(f"Loaded {len(documents)} documents from CSV file.")
         if not documents:
             raise ValueError("No documents loaded from CSV file.")
@@ -111,3 +143,23 @@ def rag_from_csv(
     rag_chain.verbose = True
     print("RAG chain created.")
     return rag_chain
+
+
+if __name__ == "__main__":
+
+    documents = build_documents(
+        CSVLoader,
+        Path("cache/네이버맛집리스트_20250201.0105.csv"),
+        text_splitter=RecursiveCharacterTextSplitter(separators=["\n"]),
+    )
+    tfidf_retriever = build_retriever(documents, TFIDFRetriever)
+    bm25_retriever = build_retriever(documents, BM25Retriever)
+    kiwi_retriever = build_retriever(documents, KiwiBM25Retriever)
+    ensemble_retriever = EnsembleRetriever(
+        retrievers=[tfidf_retriever, bm25_retriever, kiwi_retriever],
+        weights=[0.5, 0.3, 0.2],
+    )
+    resp = ensemble_retriever.invoke("떡볶이 맛집 추천해줘.", k=3)
+    for i, doc in enumerate(resp, 1):
+        print(f"문서 #{i}")
+        print(doc)

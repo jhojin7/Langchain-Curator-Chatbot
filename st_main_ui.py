@@ -3,9 +3,6 @@ from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import MessagesState, StateGraph
 
 
-global CONTEXT_DOCS
-
-
 def build_chat(message: str, docs: list[str]):
     c = st.container()
     c.markdown(message)
@@ -13,9 +10,10 @@ def build_chat(message: str, docs: list[str]):
         return c
 
     c.container(border=True)
-    c.markdown("Retrieved Documents")
+    c.expander(label="찾은 문서 더 보기", expanded=False)
+    d = c.container()
     for i, doc in enumerate(docs, 1):
-        c.expander(label=f"문서 #{i}", expanded=False).text(doc)
+        d.expander(label=f"문서 #{i}", expanded=False).text(doc)
     return c
 
 

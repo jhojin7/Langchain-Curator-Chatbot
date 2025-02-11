@@ -8,7 +8,6 @@ st.title("맛집 큐레이션 챗봇 데모")
 
 def intro_section():
     c = st.container(border=True)
-    c.markdown("## 🤖 챗봇 소개")
     return c
 
 

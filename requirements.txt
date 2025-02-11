@@ -121,3 +121,4 @@ unstructured
 chroma
 tiktoken
 rank_bm25
+langchain-teddynote
