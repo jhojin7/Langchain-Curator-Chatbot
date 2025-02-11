@@ -18,12 +18,9 @@ def create_graph(
     temp=None,
     api_key=None,
 ) -> Tuple[StateGraph, Dict[str, Any]]:
-    # Retrieved = st.expander("Retrieved Documents")
-
     llm = ChatOpenAI(model=model_name, temperature=temp, api_key=api_key)
 
     def retrieve(state: MessagesState):
-        print("---RETRIEVE---")
         question = state["messages"][-1].content
         documents = retriever.invoke(question)
 
@@ -32,14 +29,9 @@ def create_graph(
         }
 
     def generate(state: MessagesState):
-        print("---GENERATE111---")
-        print("---GENERATE222---")
         question = state["messages"][-2].content
         retrieved_docs = state["messages"][-1].content
         context = "\n\n".join(retrieved_docs)
-        c = st.container(border=True)
-        for i, doc in enumerate(retrieved_docs, 1):
-            c.expander(label=f"문서{i}", expanded=False).text(doc)
         to_combine = [
             system_prompt,
             "Context: ",
@@ -49,7 +41,6 @@ def create_graph(
         ]
         combined_text = "\n".join(to_combine)
         response = llm.invoke(combined_text)
-        print(">>> response:", response)
         return {"messages": response}
 
     graph_builder = StateGraph(state_schema=MessagesState)
@@ -72,11 +63,7 @@ if __name__ == "__main__":
     graph, chatConfig = create_graph(retriever)
     print(graph)
     response = graph.invoke(
-        {"messages": HumanMessage(content="떡볶이 맛집 추천해줘.")}, config=chatConfig
+        {"messages": [HumanMessage(content="떡볶이 맛집 추천해줘.")]}, config=chatConfig
     )
-    response = graph.invoke(
-        {"messages": HumanMessage(content="이 집 말고 다른 떡볶이 맛집 추천해줘.")},
-        config=chatConfig,
-    )
-    for message in response["messages"]:
-        print(message)
+    messages = graph.get_state(config=chatConfig).values["messages"]
+    print(messages)

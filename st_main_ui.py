@@ -20,16 +20,12 @@ def build_chat(message: str, docs: list[str]):
 
 
 def generate_response(query: str, messages: MessagesState, graph: StateGraph):
-    retrieved_docs = []
-    _messages = []
-    for event in graph.stream(
-        {"messages": messages}, config=st.session_state["chainConfig"]
-    ):
-        for key, value in event.items():
-            _messages.append(value["messages"])
+    chainConfig = st.session_state["chainConfig"]
+    graph.invoke({"messages": messages}, config=chainConfig)
+    _messages = graph.get_state(config=chainConfig).values["messages"]
 
-    response_msg = str(_messages[-1].content)
-    retrieved_docs = [doc.page_content for doc in retrieved_docs]
+    response_msg = _messages[-1].content
+    retrieved_docs = _messages[-2].content
     return response_msg, retrieved_docs
 
 
