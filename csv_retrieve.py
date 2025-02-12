@@ -2,7 +2,6 @@ import openai
 import streamlit as st
 from pathlib import Path
 from langchain_community import retrievers
-from langchain_teddynote.retrievers import KiwiBM25Retriever
 from langchain_community.retrievers import TFIDFRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
@@ -143,23 +142,3 @@ def rag_from_csv(
     rag_chain.verbose = True
     print("RAG chain created.")
     return rag_chain
-
-
-if __name__ == "__main__":
-
-    documents = build_documents(
-        CSVLoader,
-        Path("cache/네이버맛집리스트_20250201.0105.csv"),
-        text_splitter=RecursiveCharacterTextSplitter(separators=["\n"]),
-    )
-    tfidf_retriever = build_retriever(documents, TFIDFRetriever)
-    bm25_retriever = build_retriever(documents, BM25Retriever)
-    kiwi_retriever = build_retriever(documents, KiwiBM25Retriever)
-    ensemble_retriever = EnsembleRetriever(
-        retrievers=[tfidf_retriever, bm25_retriever, kiwi_retriever],
-        weights=[0.5, 0.3, 0.2],
-    )
-    resp = ensemble_retriever.invoke("떡볶이 맛집 추천해줘.", k=3)
-    for i, doc in enumerate(resp, 1):
-        print(f"문서 #{i}")
-        print(doc)
