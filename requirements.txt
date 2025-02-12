@@ -123,3 +123,4 @@ tiktoken
 rank_bm25
 langchain-teddynote
 sentence-transformers
+langchain-huggingface
