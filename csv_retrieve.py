@@ -14,13 +14,15 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import KonlpyTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
 import time
 import pickle
+import torch
 
-
+torch.classes.__path__ = []
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 LOADER = TextLoader
 TEXT_SPLITTER = RecursiveCharacterTextSplitter
@@ -50,7 +52,12 @@ def create_retriever(
     top_k=3,
     save_path: Path = None,
 ):
-    embeddings = OpenAIEmbeddings()
+    # embeddings = OpenAIEmbeddings()
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-mpnet-base-v2",
+        # model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": False},
+    )
     bm25_pkl_path = Path("cache", "bm25_retriever.pkl")
 
     if not save_path:
@@ -62,7 +69,7 @@ def create_retriever(
         loader = CSVLoader(
             csv_path,
             encoding="utf-8-sig",
-            content_columns=colnames,
+            # content_columns=colnames,
             # metadata_columns=metadata_colnames
         )
         documents = build_documents(
@@ -74,16 +81,18 @@ def create_retriever(
         if not documents:
             raise ValueError("No documents loaded from CSV file.")
 
-    with st.spinner("Creating FAISS vectorstore..."):
+    with st.spinner(f"Creating vectorstore... {FAISS}, with embeddings {embeddings}"):
         try:
+            print("load_local")
             faiss_vectorstore = FAISS.load_local(save_path, embeddings)
         except Exception as e:
+            print("from_documents")
             faiss_vectorstore = FAISS.from_documents(documents, embeddings)
             faiss_vectorstore.save_local(save_path)
         faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": 2})
         print("Created FAISS vectorstore.")
 
-    with st.spinner("Creating BM25Retriever vectorstore..."):
+    with st.spinner(f"Creating vectorstore... {BM25Retriever}"):
         if bm25_pkl_path.exists():
             bm25_retriever = pickle.load(open(bm25_pkl_path, "rb"))
             print("Loaded BM25Retriever from cache.")

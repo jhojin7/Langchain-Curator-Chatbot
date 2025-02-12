@@ -4,6 +4,8 @@ from csv_retrieve import rag_from_csv, create_retriever
 from pathlib import Path
 from graph import create_graph
 
+# CSV_PATH = "./cache/네이버맛집리스트_20250201.0105.csv"
+CSV_PATH = "./cache/all_reviews small.csv"
 sample_system_prompt = """You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question.
 If you don't know the answer, just say that you don't know.
@@ -32,7 +34,7 @@ def st_sidbar_ui() -> bool:
     )
 
     # set fixed csv path for development
-    uploaded_csv_path = Path("./cache/네이버맛집리스트_20250201.0105.csv")
+    uploaded_csv_path = Path(CSV_PATH)
     # uploaded_csv_path = write_file(csv_file)
     print(uploaded_csv_path)
 
