@@ -123,7 +123,7 @@ def create_retriever(
                 embeddings,
             )
             faiss_vectorstore.save_local(save_path)
-        faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": 2})
+        faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": top_k})
         print("Created FAISS vectorstore.")
 
     with st.spinner(f"Creating vectorstore... {BM25Retriever}"):
@@ -132,14 +132,14 @@ def create_retriever(
             print("Loaded BM25Retriever from cache.")
         else:
             bm25_retriever = BM25Retriever.from_documents(documents)
-            bm25_retriever.k = 2
+            bm25_retriever.k = top_k
             pickle.dump(bm25_retriever, open(bm25_pkl_path, "wb"))
             print("Created BM25Retriever.")
 
     with st.spinner("Creating Ensamble Retriever..."):
         ensemble_retriever = EnsembleRetriever(
             retrievers=[faiss_retriever, bm25_retriever],
-            weights=[0.5, 0.5],
+            weights=[0.3, 0.7],
         )
         print("Created Ensemble Retriever.")
 
