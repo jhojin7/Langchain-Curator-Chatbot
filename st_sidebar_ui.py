@@ -4,8 +4,7 @@ from csv_retrieve import rag_from_csv, create_retriever
 from pathlib import Path
 from graph import create_graph
 
-# CSV_PATH = "./cache/네이버맛집리스트_20250201.0105.csv"
-CSV_PATH = "./cache/all_reviews small.csv"
+CSV_PATH = "./cache/all_reviews_sampled.csv"
 sample_system_prompt = """You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question.
 If you don't know the answer, just say that you don't know.

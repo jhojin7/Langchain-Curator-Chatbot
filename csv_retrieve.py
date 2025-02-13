@@ -17,15 +17,21 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import KonlpyTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# from langchain.text_splitters import CharacterTextSplitter
 from pathlib import Path
 import time
 import pickle
 import torch
+import pandas as pd
 
 torch.classes.__path__ = []
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 LOADER = TextLoader
 TEXT_SPLITTER = RecursiveCharacterTextSplitter
+MODEL_NAME = "intfloat/multilingual-e5-large-instruct"
+# "nlpai-lab/KoE5"
+# "sentence-transformers/all-mpnet-base-v2",
 
 
 metadata_colnames = "가게명,카테고리,주소,이미지URL1,이미지URL2,이미지URL3,별점,방문자리뷰수,블로그리뷰수,영업시간,전화번호,편의시설".split(
@@ -42,9 +48,30 @@ def build_retriever(documents: list[str], retriever, k=2):
     return built_retriever
 
 
-def build_documents(loader: BaseLoader, path: Path, text_splitter=None):
+_splitter = RecursiveCharacterTextSplitter(
+    separators=["\n"],
+    chunk_size=1000,
+    chunk_overlap=200,
+    length_function=len,
+)
+
+
+def build_documents(loader: BaseLoader, path: Path, text_splitter=_splitter):
     documents = loader.load_and_split(text_splitter=text_splitter)
     return documents
+    # documents = []
+    # df = pd.read_csv(path, encoding="utf-8-sig")
+    # for row_i, row in df.iterrows():
+    #     print(row)
+    #     text = ""
+    #     for col_key, col_val in row.items():
+    #         if not col_val:
+    #             continue
+    #         text_chunks = _splitter.split(col_val)
+    #         for chunk in text_chunks:
+    #             text += f"{col_key}: {chunk}\n"
+    #     documents.append(text)
+    # return documents
 
 
 def create_retriever(
@@ -54,7 +81,7 @@ def create_retriever(
 ):
     # embeddings = OpenAIEmbeddings()
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-mpnet-base-v2",
+        model_name=MODEL_NAME,
         # model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": False},
     )
@@ -84,10 +111,17 @@ def create_retriever(
     with st.spinner(f"Creating vectorstore... {FAISS}, with embeddings {embeddings}"):
         try:
             print("load_local")
-            faiss_vectorstore = FAISS.load_local(save_path, embeddings)
+            faiss_vectorstore = FAISS.load_local(
+                save_path,
+                embeddings,
+                allow_dangerous_deserialization=True,
+            )
         except Exception as e:
-            print("from_documents")
-            faiss_vectorstore = FAISS.from_documents(documents, embeddings)
+            print("from_documents", str(e))
+            faiss_vectorstore = FAISS.from_documents(
+                documents,
+                embeddings,
+            )
             faiss_vectorstore.save_local(save_path)
         faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": 2})
         print("Created FAISS vectorstore.")
