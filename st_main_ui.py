@@ -3,7 +3,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import MessagesState, StateGraph
 
 
-def build_chat(message: str, docs: list[str]):
+def build_chat(message: str, docs: list):
     c = st.container()
     c.markdown(message)
     if not docs:
@@ -13,6 +13,10 @@ def build_chat(message: str, docs: list[str]):
     c.expander(label="찾은 문서 더 보기", expanded=False)
     d = c.container()
     for i, doc in enumerate(docs, 1):
+        print(doc)
+        doc = doc.lstrip("page_content=")
+        ii = doc.index("metadata")
+        doc = doc[:ii]
         d.expander(label=f"문서 #{i}", expanded=False).text(doc)
     return c
 

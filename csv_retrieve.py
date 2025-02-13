@@ -79,12 +79,12 @@ def create_retriever(
     top_k=3,
     save_path: Path = None,
 ):
-    # embeddings = OpenAIEmbeddings()
-    embeddings = HuggingFaceEmbeddings(
-        model_name=MODEL_NAME,
-        # model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": False},
-    )
+    embeddings = OpenAIEmbeddings()
+    # embeddings = HuggingFaceEmbeddings(
+    #     model_name=MODEL_NAME,
+    #     # model_kwargs={"device": "cpu"},
+    #     encode_kwargs={"normalize_embeddings": False},
+    # )
     bm25_pkl_path = Path("cache", "bm25_retriever.pkl")
 
     if not save_path:
@@ -108,7 +108,7 @@ def create_retriever(
         if not documents:
             raise ValueError("No documents loaded from CSV file.")
 
-    with st.spinner(f"Creating vectorstore... {FAISS}, with embeddings {embeddings}"):
+    with st.spinner(f"Creating vectorstore... with embeddings"):
         try:
             print("load_local")
             faiss_vectorstore = FAISS.load_local(
