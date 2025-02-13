@@ -4,20 +4,23 @@ from langgraph.graph import MessagesState, StateGraph
 
 
 def build_chat(message: str, docs: list):
-    c = st.container()
+    c = st.container(border=True)
     c.markdown(message)
     if not docs:
         return c
 
-    c.container(border=True)
-    c.expander(label="찾은 문서 더 보기", expanded=False)
-    d = c.container()
+    col_cnt = 2
+    cols = c.columns(col_cnt)
+
     for i, doc in enumerate(docs, 1):
         print(doc)
+        # strip the metadata part
         doc = doc.lstrip("page_content=")
         ii = doc.index("metadata")
         doc = doc[:ii]
-        d.expander(label=f"문서 #{i}", expanded=False).text(doc)
+        # present
+        col_idx = (i - 1) % col_cnt
+        cols[col_idx].expander(label=f"문서 #{i}", expanded=False).text(doc)
     return c
 
 
