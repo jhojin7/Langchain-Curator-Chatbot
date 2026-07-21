@@ -46,7 +46,7 @@ langchain-openai==0.3.2
 langchain-text-splitters==0.3.9
 langdetect==1.0.9
 langsmith==0.8.18
-lxml==5.3.0
+lxml==6.1.0
 Markdown==3.7
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
